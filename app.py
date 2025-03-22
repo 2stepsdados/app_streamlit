@@ -21,6 +21,13 @@ def authenticate_google_drive():
     )
     return build("drive", "v3", credentials=creds)
 
+# Exemplo de uso
+service = authenticate_google_drive()
+results = service.files().list(pageSize=10, fields="files(id, name)").execute()
+files = results.get("files", [])
+for file in files:
+    print(f"{file['name']} ({file['id']})")
+
 def download_csv(service):
     # Busca a subpasta "dados_refs"
     query = f"'{FOLDER_ID}' in parents and name = '{SUBFOLDER_NAME}' and mimeType = 'application/vnd.google-apps.folder'"
