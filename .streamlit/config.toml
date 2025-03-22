@@ -1,0 +1,57 @@
+[theme]
+primaryColor = "#5030EF"  # Roxo (cor principal)
+backgroundColor = "#1E1E1E"  # Cinza escuro (fundo)
+secondaryBackgroundColor = "#2E2E2E"  # Cinza médio (destaque)
+textColor = "#FFFFFF"  # Branco (texto principal)
+font = "sans serif"  # Fonte genérica (será substituída pelo CSS)
+
+[font]
+base = "sans serif"  # Fonte genérica (será substituída pelo CSS)
+heading = "sans serif"  # Fonte genérica (será substituída pelo CSS)
+code = "monospace"  # Fonte para código
+
+[colors]
+primary = "#5030EF"  # Roxo (cor principal)
+background = "#1E1E1E"  # Cinza escuro (fundo)
+secondary = "#2E2E2E"  # Cinza médio (destaque)
+text = "#FFFFFF"  # Branco (texto principal)
+accent = "#F23E14"  # Laranja (cor de destaque)
+success = "#30F099"  # Verde (cor de sucesso)
+warning = "#F0D930"  # Amarelo (cor de aviso)
+error = "#F23E14"  # Laranja (cor de erro)
+
+[button]
+backgroundColor = "#5030EF"  # Roxo (cor principal)
+textColor = "#FFFFFF"  # Branco (texto do botão)
+borderRadius = "8px"  # Bordas arredondadas
+
+[sidebar]
+backgroundColor = "#2E2E2E"  # Cinza médio (destaque)
+textColor = "#FFFFFF"  # Branco (texto)
+borderRadius = "8px"  # Bordas arredondadas
+
+[input]
+backgroundColor = "#2E2E2E"  # Cinza médio (fundo)
+textColor = "#FFFFFF"  # Branco (texto)
+borderColor = "#5030EF"  # Roxo (borda)
+borderRadius = "8px"  # Bordas arredondadas
+
+[table]
+backgroundColor = "#2E2E2E"  # Cinza médio (fundo)
+textColor = "#FFFFFF"  # Branco (texto)
+headerColor = "#5030EF"  # Roxo (cabeçalho)
+borderColor = "#F0D930"  # Amarelo (borda)
+borderRadius = "8px"  # Bordas arredondadas
+
+[markdown]
+heading1Color = "#5030EF"  # Roxo (título H1)
+heading2Color = "#F23E14"  # Laranja (título H2)
+heading3Color = "#30F099"  # Verde (título H3)
+textColor = "#FFFFFF"  # Branco (texto)
+
+[icon]
+primary = "📍"  # Ícone de localização (X que marca o local)
+secondary = "📡"  # Ícone de radar (Diagnóstico 360)
+
+[custom]
+css = "styles.css"  # Carrega o arquivo CSS personalizado

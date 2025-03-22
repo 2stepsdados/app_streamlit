@@ -1,0 +1,6 @@
+pandas==2.2.3
+streamlit==1.43.2
+google-auth
+google-auth-oauthlib
+google-auth-httplib2
+google-api-python-client
