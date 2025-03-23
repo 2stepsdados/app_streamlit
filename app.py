@@ -18,7 +18,6 @@ USUARIOS_VALIDOS = {
     "Admin2Steps": "Acesso#2Steps#Refs*",
 }
 
-# Função para verificar o usuário e a senha
 def verificar_usuario_senha():
     # Solicita o usuário e a senha ao usuário
     usuario = st.text_input("Digite o usuário:")
@@ -26,11 +25,23 @@ def verificar_usuario_senha():
     
     # Verifica se o usuário e a senha estão corretos
     if usuario in USUARIOS_VALIDOS and senha == USUARIOS_VALIDOS[usuario]:
-        st.session_state.usuario_autenticado = True
-        return True
+        st.session_state.usuario_autenticado = True  # Marca o usuário como autenticado
+        st.rerun()  # Recarrega o aplicativo para remover as barras de usuário e senha
     elif usuario != "" or senha != "":
         st.error("Usuário ou senha incorretos. Tente novamente.")
-    return False
+
+# Verifica se o usuário já está autenticado
+if "usuario_autenticado" not in st.session_state:
+    st.session_state.usuario_autenticado = False
+
+# Se o usuário não estiver autenticado, exibe os campos de usuário e senha
+if not st.session_state.usuario_autenticado:
+    verificar_usuario_senha()
+else:
+    # Se o usuário já estiver autenticado, exibe o aplicativo diretamente
+    service = authenticate_google_drive()
+    refs = download_csv(service)
+    main(service, refs)
     
 # Configurações do Google Drive
 SCOPES = ["https://www.googleapis.com/auth/drive"]
@@ -117,7 +128,11 @@ def main(service, refs):
             pd.DataFrame: Um DataFrame com as linhas que contêm o termo.
         """
         return df[df[coluna].str.contains(termo, case=case_sensitive, na=False)]
-
+        
+    if st.button("Logout"):
+        st.session_state.usuario_autenticado = False
+        st.rerun()
+        
     col1, col2 = st.columns([1, 4])
     with col1:
         st.image("imagem.png", width=90)  # Ajuste o width conforme necessário
