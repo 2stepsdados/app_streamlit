@@ -7,90 +7,78 @@ from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseDownload, MediaIoBaseUpload
 
+# Configuração da página DEVE SER A PRIMEIRA CHAMADA
+st.set_page_config(
+    page_title="Busca & Registro de Referências",
+    layout="wide"
+)
+
 # Configurações do Google Drive
 SCOPES = ["https://www.googleapis.com/auth/drive"]
-FOLDER_ID = "1abI_PNRR0N5dgKJ7EXCsAFf_LdN6mLwA"  # ID da pasta principal no Google Drive
-SUBFOLDER_NAME = "dados_refs"  # Nome da subpasta onde o CSV está
+FOLDER_ID = "1abI_PNRR0N5dgKJ7EXCsAFf_LdN6mLwA"  # ID da pasta "dados_refs" no Google Drive
 FILE_NAME = "refs.csv"  # Nome do arquivo CSV
 
-# Carregue as credenciais da variável de ambiente
-google_credentials_info = json.loads(os.getenv("GOOGLE_CREDENTIALS"))
-google_credentials = service_account.Credentials.from_service_account_info(google_credentials_info, scopes=SCOPES)
-
-# Autenticação no Google Drive
+# Função para autenticar no Google Drive
 def authenticate_google_drive():
-    return build("drive", "v3", credentials=google_credentials)
+    try:
+        # Carrega as credenciais da variável de ambiente
+        google_credentials_info = json.loads(os.getenv("GOOGLE_CREDENTIALS"))
+        credentials = service_account.Credentials.from_service_account_info(google_credentials_info, scopes=SCOPES)
+        return build("drive", "v3", credentials=credentials)
+    except Exception as e:
+        st.error(f"Erro ao autenticar no Google Drive: {e}")
+        return None
 
-# Funções de download e upload (com tratamento de erros)
+# Função para baixar o CSV do Google Drive
 def download_csv(service):
     try:
-        # Busca a subpasta "dados_refs"
-        query = f"'{FOLDER_ID}' in parents and name = '{SUBFOLDER_NAME}' and mimeType = 'application/vnd.google-apps.folder'"
+        # Busca o arquivo CSV diretamente na pasta "dados_refs"
+        query = f"'{FOLDER_ID}' in parents and name = '{FILE_NAME}'"
         response = service.files().list(q=query, fields="files(id)").execute()
-        folders = response.get("files", [])
+        files = response.get("files", [])
 
-        if folders:
-            subfolder_id = folders[0]["id"]  # ID da subpasta "dados_refs"
-            
-            # Busca o arquivo CSV dentro da subpasta
-            query = f"'{subfolder_id}' in parents and name = '{FILE_NAME}'"
-            response = service.files().list(q=query, fields="files(id)").execute()
-            files = response.get("files", [])
-
-            if files:
-                file_id = files[0]["id"]
-                request = service.files().get_media(fileId=file_id)
-                fh = io.BytesIO()
-                downloader = MediaIoBaseDownload(fh, request)
-                done = False
-                while done is False:
-                    status, done = downloader.next_chunk()
-                fh.seek(0)
-                return pd.read_csv(fh)
-            else:
-                st.warning(f"Arquivo '{FILE_NAME}' não encontrado na subpasta '{SUBFOLDER_NAME}'.")
-                return pd.DataFrame()  # Retorna um DataFrame vazio se o arquivo não existir
+        if files:
+            file_id = files[0]["id"]
+            request = service.files().get_media(fileId=file_id)
+            fh = io.BytesIO()
+            downloader = MediaIoBaseDownload(fh, request)
+            done = False
+            while done is False:
+                status, done = downloader.next_chunk()
+            fh.seek(0)
+            return pd.read_csv(fh)
         else:
-            st.warning(f"Subpasta '{SUBFOLDER_NAME}' não encontrada.")
-            return pd.DataFrame()  # Retorna um DataFrame vazio se a subpasta não existir
+            st.warning(f"Arquivo '{FILE_NAME}' não encontrado na pasta.")
+            return pd.DataFrame()  # Retorna um DataFrame vazio se o arquivo não existir
     except Exception as e:
         st.error(f"Erro ao baixar o CSV do Google Drive: {e}")
         return pd.DataFrame()  # Retorna um DataFrame vazio em caso de erro
 
+# Função para fazer upload do CSV para o Google Drive
 def upload_csv(service, df):
     try:
-        # Busca a subpasta "dados_refs"
-        query = f"'{FOLDER_ID}' in parents and name = '{SUBFOLDER_NAME}' and mimeType = 'application/vnd.google-apps.folder'"
+        # Verifica se o arquivo já existe na pasta
+        query = f"'{FOLDER_ID}' in parents and name = '{FILE_NAME}'"
         response = service.files().list(q=query, fields="files(id)").execute()
-        folders = response.get("files", [])
+        files = response.get("files", [])
 
-        if folders:
-            subfolder_id = folders[0]["id"]  # ID da subpasta "dados_refs"
-            
-            # Verifica se o arquivo já existe na subpasta
-            query = f"'{subfolder_id}' in parents and name = '{FILE_NAME}'"
-            response = service.files().list(q=query, fields="files(id)").execute()
-            files = response.get("files", [])
-
-            if files:
-                # Se o arquivo já existe, atualize-o
-                file_id = files[0]["id"]
-                csv_buffer = io.StringIO()
-                df.to_csv(csv_buffer, index=False)
-                media = MediaIoBaseUpload(io.BytesIO(csv_buffer.getvalue().encode()), mimetype="text/csv")
-                service.files().update(fileId=file_id, media_body=media).execute()
-            else:
-                # Se o arquivo não existe, crie-o
-                file_metadata = {
-                    "name": FILE_NAME,
-                    "parents": [subfolder_id],
-                }
-                csv_buffer = io.StringIO()
-                df.to_csv(csv_buffer, index=False)
-                media = MediaIoBaseUpload(io.BytesIO(csv_buffer.getvalue().encode()), mimetype="text/csv")
-                service.files().create(body=file_metadata, media_body=media, fields="id").execute()
+        if files:
+            # Se o arquivo já existe, atualize-o
+            file_id = files[0]["id"]
+            csv_buffer = io.StringIO()
+            df.to_csv(csv_buffer, index=False)
+            media = MediaIoBaseUpload(io.BytesIO(csv_buffer.getvalue().encode()), mimetype="text/csv")
+            service.files().update(fileId=file_id, media_body=media).execute()
         else:
-            st.error(f"Subpasta '{SUBFOLDER_NAME}' não encontrada.")
+            # Se o arquivo não existe, crie-o
+            file_metadata = {
+                "name": FILE_NAME,
+                "parents": [FOLDER_ID],
+            }
+            csv_buffer = io.StringIO()
+            df.to_csv(csv_buffer, index=False)
+            media = MediaIoBaseUpload(io.BytesIO(csv_buffer.getvalue().encode()), mimetype="text/csv")
+            service.files().create(body=file_metadata, media_body=media, fields="id").execute()
     except Exception as e:
         st.error(f"Erro ao fazer upload do CSV para o Google Drive: {e}")
 
