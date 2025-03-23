@@ -82,7 +82,7 @@ def upload_csv(service, df):
     except Exception as e:
         st.error(f"Erro ao fazer upload do CSV para o Google Drive: {e}")
         
-def main():
+def main(service, refs):
     # Função para buscar termos contidos no texto
     def buscar_termo(df, coluna, termo, case_sensitive=False):
         """
@@ -235,4 +235,4 @@ if __name__ == "__main__":
     refs = download_csv(service)
 
     # Executar o aplicativo Streamlit
-    main()
+    def main(service, refs)
