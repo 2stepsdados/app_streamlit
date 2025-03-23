@@ -81,7 +81,7 @@ def upload_csv(service, df):
             service.files().create(body=file_metadata, media_body=media, fields="id").execute()
     except Exception as e:
         st.error(f"Erro ao fazer upload do CSV para o Google Drive: {e}")
-
+        
 def main():
     # Função para buscar termos contidos no texto
     def buscar_termo(df, coluna, termo, case_sensitive=False):
