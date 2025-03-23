@@ -116,14 +116,18 @@ def main(service, refs):
         """
         return df[df[coluna].str.contains(termo, case=case_sensitive, na=False)]
         
-    if st.button("Logout"):
-        st.session_state.usuario_autenticado = False
-        st.rerun()
         
-    col1, col2 = st.columns([1, 4])
+    col1, col2 = st.columns([4, 1])  # A primeira coluna ocupa 4 partes, a segunda 1 parte
+
+    # Coloca o botão de logout na segunda coluna (canto superior direito)
+    with col2:
+        if st.button("Logout"):
+            st.session_state.usuario_autenticado = False
+            st.rerun()
+
+    # Restante do conteúdo do aplicativo
     with col1:
         st.image("imagem.png", width=90)  # Ajuste o width conforme necessário
-    with col2:
         st.title("APP PARA BUSCA DE REFERÊNCIAS 2STEPS")
 
     # Criando abas
