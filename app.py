@@ -13,6 +13,21 @@ st.set_page_config(
     layout="wide"
 )
 
+# Senha de acesso ao aplicativo
+SENHA_CORRETA = "Acesso#2Steps#Refs*"  # Defina sua senha aqui
+
+# Função para verificar a senha
+def verificar_senha():
+    # Solicita a senha ao usuário
+    senha = st.text_input("Digite a senha para acessar o aplicativo:", type="password")
+    
+    # Verifica se a senha está correta
+    if senha == SENHA_CORRETA:
+        return True
+    elif senha != "":
+        st.error("Senha incorreta. Tente novamente.")
+    return False
+    
 # Configurações do Google Drive
 SCOPES = ["https://www.googleapis.com/auth/drive"]
 FOLDER_ID = "1abI_PNRR0N5dgKJ7EXCsAFf_LdN6mLwA"  # ID da pasta "dados_refs" no Google Drive
@@ -230,9 +245,11 @@ def main(service, refs):
                 st.warning("Por favor, preencha todos os campos.")
 
 if __name__ == "__main__":
-    # Autenticar e carregar o DataFrame do Google Drive
-    service = authenticate_google_drive()
-    refs = download_csv(service)
+    # Verifica a senha antes de carregar o aplicativo
+    if verificar_senha():
+        # Autenticar e carregar o DataFrame do Google Drive
+        service = authenticate_google_drive()
+        refs = download_csv(service)
 
-    # Executar o aplicativo Streamlit
-    main(service, refs)
+        # Executar o aplicativo Streamlit
+        main(service, refs)
