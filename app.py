@@ -15,7 +15,7 @@ st.set_page_config(
 
 # Dicionário de usuários e senhas válidos
 USUARIOS_VALIDOS = {
-    "Admin2Steps": "Acesso#2Steps#Refs*",
+    "Admin2Steps": "Acesso!2#Steps*",
 }
 
 def verificar_usuario_senha():
@@ -30,19 +30,6 @@ def verificar_usuario_senha():
     elif usuario != "" or senha != "":
         st.error("Usuário ou senha incorretos. Tente novamente.")
 
-# Verifica se o usuário já está autenticado
-if "usuario_autenticado" not in st.session_state:
-    st.session_state.usuario_autenticado = False
-
-# Se o usuário não estiver autenticado, exibe os campos de usuário e senha
-if not st.session_state.usuario_autenticado:
-    verificar_usuario_senha()
-else:
-    # Se o usuário já estiver autenticado, exibe o aplicativo diretamente
-    service = authenticate_google_drive()
-    refs = download_csv(service)
-    main(service, refs)
-    
 # Configurações do Google Drive
 SCOPES = ["https://www.googleapis.com/auth/drive"]
 FOLDER_ID = "1abI_PNRR0N5dgKJ7EXCsAFf_LdN6mLwA"  # ID da pasta "dados_refs" no Google Drive
@@ -270,18 +257,11 @@ if __name__ == "__main__":
 
     # Se o usuário não estiver autenticado, exibe os campos de usuário e senha
     if not st.session_state.usuario_autenticado:
-        if verificar_usuario_senha():
-            # Autenticar e carregar o DataFrame do Google Drive
-            service = authenticate_google_drive()
-            refs = download_csv(service)
-
-            # Executar o aplicativo Streamlit
-            main(service, refs)
+        verificar_usuario_senha()
     else:
         # Se o usuário já estiver autenticado, exibe o aplicativo diretamente
         service = authenticate_google_drive()
-        refs = download_csv(service)
-        main(service, refs)
-
-        # Executar o aplicativo Streamlit
-        main(service, refs)
+        if service is not None:  # Verifica se a autenticação foi bem-sucedida
+            refs = download_csv(service)
+            if refs is not None:  # Verifica se o download do CSV foi bem-sucedido
+                main(service, refs)
