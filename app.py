@@ -124,7 +124,7 @@ def main(service, refs):
     with col1:
         st.image("imagem.png", width=90)  # Ajuste o width conforme necessário
 
-    with col2
+    with col2:
         st.title("APP PARA BUSCA DE REFERÊNCIAS 2STEPS")
 
     with col3:
