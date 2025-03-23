@@ -1,26 +1,30 @@
 import os
 import io
+import json
 import pandas as pd
 import streamlit as st
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
-from googleapiclient.http import MediaIoBaseDownload, MediaFileUpload
+from googleapiclient.http import MediaIoBaseDownload, MediaIoBaseUpload
 
 
 # Configurações do Google Drive
 SCOPES = ["https://www.googleapis.com/auth/drive"]
-CREDENTIALS_FILE = "credentials.json"  # Arquivo de credenciais baixado
 FOLDER_ID = "1abI_PNRR0N5dgKJ7EXCsAFf_LdN6mLwA"  # ID da pasta principal no Google Drive
 SUBFOLDER_NAME = "dados_refs"  # Nome da subpasta onde o CSV está
 FILE_NAME = "refs.csv"  # Nome do arquivo CSV
 
+# Carregue as credenciais da variável de ambiente
+google_credentials_info = json.loads(os.getenv("GOOGLE_CREDENTIALS"))
+google_credentials = service_account.Credentials.from_service_account_info(google_credentials_info, scopes=SCOPES)
+
 # Autenticação no Google Drive
 def authenticate_google_drive():
-    creds = service_account.Credentials.from_service_account_file(
-        CREDENTIALS_FILE, scopes=SCOPES
-    )
-    return build("drive", "v3", credentials=creds)
+    return build("drive", "v3", credentials=google_credentials)
 
+<<<<<<< HEAD
+# Funções de download e upload (com tratamento de erros)
+=======
 # Exemplo de uso
 service = authenticate_google_drive()
 results = service.files().list(pageSize=10, fields="files(id, name)").execute()
@@ -28,70 +32,80 @@ files = results.get("files", [])
 for file in files:
     print(f"{file['name']} ({file['id']})")
 
+>>>>>>> 532673a15d4af7d0a726c6b5bbb3a21d1a561aa7
 def download_csv(service):
-    # Busca a subpasta "dados_refs"
-    query = f"'{FOLDER_ID}' in parents and name = '{SUBFOLDER_NAME}' and mimeType = 'application/vnd.google-apps.folder'"
-    response = service.files().list(q=query, fields="files(id)").execute()
-    folders = response.get("files", [])
-
-    if folders:
-        subfolder_id = folders[0]["id"]  # ID da subpasta "dados_refs"
-        
-        # Busca o arquivo CSV dentro da subpasta
-        query = f"'{subfolder_id}' in parents and name = '{FILE_NAME}'"
+    try:
+        # Busca a subpasta "dados_refs"
+        query = f"'{FOLDER_ID}' in parents and name = '{SUBFOLDER_NAME}' and mimeType = 'application/vnd.google-apps.folder'"
         response = service.files().list(q=query, fields="files(id)").execute()
-        files = response.get("files", [])
+        folders = response.get("files", [])
 
-        if files:
-            file_id = files[0]["id"]
-            request = service.files().get_media(fileId=file_id)
-            fh = io.BytesIO()
-            downloader = MediaIoBaseDownload(fh, request)
-            done = False
-            while done is False:
-                status, done = downloader.next_chunk()
-            fh.seek(0)
-            return pd.read_csv(fh)
+        if folders:
+            subfolder_id = folders[0]["id"]  # ID da subpasta "dados_refs"
+            
+            # Busca o arquivo CSV dentro da subpasta
+            query = f"'{subfolder_id}' in parents and name = '{FILE_NAME}'"
+            response = service.files().list(q=query, fields="files(id)").execute()
+            files = response.get("files", [])
+
+            if files:
+                file_id = files[0]["id"]
+                request = service.files().get_media(fileId=file_id)
+                fh = io.BytesIO()
+                downloader = MediaIoBaseDownload(fh, request)
+                done = False
+                while done is False:
+                    status, done = downloader.next_chunk()
+                fh.seek(0)
+                return pd.read_csv(fh)
+            else:
+                st.warning(f"Arquivo '{FILE_NAME}' não encontrado na subpasta '{SUBFOLDER_NAME}'.")
+                return pd.DataFrame()  # Retorna um DataFrame vazio se o arquivo não existir
         else:
-            st.warning(f"Arquivo '{FILE_NAME}' não encontrado na subpasta '{SUBFOLDER_NAME}'.")
-            return pd.DataFrame()  # Retorna um DataFrame vazio se o arquivo não existir
-    else:
-        st.warning(f"Subpasta '{SUBFOLDER_NAME}' não encontrada.")
-        return pd.DataFrame()  # Retorna um DataFrame vazio se a subpasta não existir
+            st.warning(f"Subpasta '{SUBFOLDER_NAME}' não encontrada.")
+            return pd.DataFrame()  # Retorna um DataFrame vazio se a subpasta não existir
+    except Exception as e:
+        st.error(f"Erro ao baixar o CSV do Google Drive: {e}")
+        return pd.DataFrame()  # Retorna um DataFrame vazio em caso de erro
 
 def upload_csv(service, df):
-    # Busca a subpasta "dados_refs"
-    query = f"'{FOLDER_ID}' in parents and name = '{SUBFOLDER_NAME}' and mimeType = 'application/vnd.google-apps.folder'"
-    response = service.files().list(q=query, fields="files(id)").execute()
-    folders = response.get("files", [])
-
-    if folders:
-        subfolder_id = folders[0]["id"]  # ID da subpasta "dados_refs"
-        
-        # Verifica se o arquivo já existe na subpasta
-        query = f"'{subfolder_id}' in parents and name = '{FILE_NAME}'"
+    try:
+        # Busca a subpasta "dados_refs"
+        query = f"'{FOLDER_ID}' in parents and name = '{SUBFOLDER_NAME}' and mimeType = 'application/vnd.google-apps.folder'"
         response = service.files().list(q=query, fields="files(id)").execute()
-        files = response.get("files", [])
+        folders = response.get("files", [])
 
-        if files:
-            # Se o arquivo já existe, atualize-o
-            file_id = files[0]["id"]
-            csv_buffer = io.StringIO()
-            df.to_csv(csv_buffer, index=False)
-            media = MediaIoBaseUpload(io.BytesIO(csv_buffer.getvalue().encode()), mimetype="text/csv")
-            service.files().update(fileId=file_id, media_body=media).execute()
+        if folders:
+            subfolder_id = folders[0]["id"]  # ID da subpasta "dados_refs"
+            
+            # Verifica se o arquivo já existe na subpasta
+            query = f"'{subfolder_id}' in parents and name = '{FILE_NAME}'"
+            response = service.files().list(q=query, fields="files(id)").execute()
+            files = response.get("files", [])
+
+            if files:
+                # Se o arquivo já existe, atualize-o
+                file_id = files[0]["id"]
+                csv_buffer = io.StringIO()
+                df.to_csv(csv_buffer, index=False)
+                media = MediaIoBaseUpload(io.BytesIO(csv_buffer.getvalue().encode()), mimetype="text/csv")
+                service.files().update(fileId=file_id, media_body=media).execute()
+            else:
+                # Se o arquivo não existe, crie-o
+                file_metadata = {
+                    "name": FILE_NAME,
+                    "parents": [subfolder_id],
+                }
+                csv_buffer = io.StringIO()
+                df.to_csv(csv_buffer, index=False)
+                media = MediaIoBaseUpload(io.BytesIO(csv_buffer.getvalue().encode()), mimetype="text/csv")
+                service.files().create(body=file_metadata, media_body=media, fields="id").execute()
         else:
-            # Se o arquivo não existe, crie-o
-            file_metadata = {
-                "name": FILE_NAME,
-                "parents": [subfolder_id],
-            }
-            csv_buffer = io.StringIO()
-            df.to_csv(csv_buffer, index=False)
-            media = MediaIoBaseUpload(io.BytesIO(csv_buffer.getvalue().encode()), mimetype="text/csv")
-            service.files().create(body=file_metadata, media_body=media, fields="id").execute()
-    else:
-        st.error(f"Subpasta '{SUBFOLDER_NAME}' não encontrada.")
+            st.error(f"Subpasta '{SUBFOLDER_NAME}' não encontrada.")
+    except Exception as e:
+        st.error(f"Erro ao fazer upload do CSV para o Google Drive: {e}")
+
+# Restante do código (main e interface do Streamlit)...
 
 def main():
     # Função para buscar termos contidos no texto
