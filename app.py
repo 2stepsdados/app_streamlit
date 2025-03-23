@@ -99,12 +99,6 @@ def main():
         """
         return df[df[coluna].str.contains(termo, case=case_sensitive, na=False)]
 
-    # Configuração da página (DEVE SER A PRIMEIRA CHAMADA)
-    st.set_page_config(
-        page_title="Busca & Registro de Referências",
-        layout="wide"
-    )
-
     col1, col2 = st.columns([1, 4])
     with col1:
         st.image("imagem.png", width=90)  # Ajuste o width conforme necessário
