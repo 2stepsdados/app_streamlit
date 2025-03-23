@@ -7,7 +7,6 @@ from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseDownload, MediaIoBaseUpload
 
-
 # Configurações do Google Drive
 SCOPES = ["https://www.googleapis.com/auth/drive"]
 FOLDER_ID = "1abI_PNRR0N5dgKJ7EXCsAFf_LdN6mLwA"  # ID da pasta principal no Google Drive
@@ -22,17 +21,7 @@ google_credentials = service_account.Credentials.from_service_account_info(googl
 def authenticate_google_drive():
     return build("drive", "v3", credentials=google_credentials)
 
-<<<<<<< HEAD
 # Funções de download e upload (com tratamento de erros)
-=======
-# Exemplo de uso
-service = authenticate_google_drive()
-results = service.files().list(pageSize=10, fields="files(id, name)").execute()
-files = results.get("files", [])
-for file in files:
-    print(f"{file['name']} ({file['id']})")
-
->>>>>>> 532673a15d4af7d0a726c6b5bbb3a21d1a561aa7
 def download_csv(service):
     try:
         # Busca a subpasta "dados_refs"
@@ -104,8 +93,6 @@ def upload_csv(service, df):
             st.error(f"Subpasta '{SUBFOLDER_NAME}' não encontrada.")
     except Exception as e:
         st.error(f"Erro ao fazer upload do CSV para o Google Drive: {e}")
-
-# Restante do código (main e interface do Streamlit)...
 
 def main():
     # Função para buscar termos contidos no texto
