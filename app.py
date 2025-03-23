@@ -235,4 +235,4 @@ if __name__ == "__main__":
     refs = download_csv(service)
 
     # Executar o aplicativo Streamlit
-    def main(service, refs)
+    main(service, refs)
