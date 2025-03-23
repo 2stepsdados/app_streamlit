@@ -19,16 +19,28 @@ USUARIOS_VALIDOS = {
 }
 
 def verificar_usuario_senha():
-    # Solicita o usuário e a senha ao usuário
-    usuario = st.text_input("Digite o usuário:")
-    senha = st.text_input("Digite a senha para acessar o aplicativo:", type="password")
-    
+    # Centraliza o conteúdo usando colunas
+    col1, col2, col3 = st.columns([1, 3, 1])  # A coluna do meio (col2) é mais larga
+
+    with col2:
+        # Exibe a imagem
+        st.image("imagem.png", width=90)
+
+        # Adiciona um pequeno espaço entre a imagem e os campos de entrada
+        st.write("")  # Espaço vazio para melhorar o layout
+
+        # Campos de entrada para usuário e senha
+        usuario = st.text_input("Digite o usuário:")
+        senha = st.text_input("Digite a senha para acessar o aplicativo:", type="password")
+
     # Verifica se o usuário e a senha estão corretos
     if usuario in USUARIOS_VALIDOS and senha == USUARIOS_VALIDOS[usuario]:
         st.session_state.usuario_autenticado = True  # Marca o usuário como autenticado
         st.rerun()  # Recarrega o aplicativo para remover as barras de usuário e senha
     elif usuario != "" or senha != "":
-        st.error("Usuário ou senha incorretos. Tente novamente.")
+        # Centraliza a mensagem de erro
+        with col2:
+            st.error("Usuário ou senha incorretos. Tente novamente.")
 
 # Configurações do Google Drive
 SCOPES = ["https://www.googleapis.com/auth/drive"]
