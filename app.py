@@ -13,19 +13,23 @@ st.set_page_config(
     layout="wide"
 )
 
-# Senha de acesso ao aplicativo
-SENHA_CORRETA = "Acesso#2Steps#Refs*"  # Defina sua senha aqui
+# Dicionário de usuários e senhas válidos
+USUARIOS_VALIDOS = {
+    "Admin2Steps": "Acesso#2Steps#Refs*",
+}
 
-# Função para verificar a senha
-def verificar_senha():
-    # Solicita a senha ao usuário
+# Função para verificar o usuário e a senha
+def verificar_usuario_senha():
+    # Solicita o usuário e a senha ao usuário
+    usuario = st.text_input("Digite o usuário:")
     senha = st.text_input("Digite a senha para acessar o aplicativo:", type="password")
     
-    # Verifica se a senha está correta
-    if senha == SENHA_CORRETA:
+    # Verifica se o usuário e a senha estão corretos
+    if usuario in USUARIOS_VALIDOS and senha == USUARIOS_VALIDOS[usuario]:
+        st.session_state.usuario_autenticado = True
         return True
-    elif senha != "":
-        st.error("Senha incorreta. Tente novamente.")
+    elif usuario != "" or senha != "":
+        st.error("Usuário ou senha incorretos. Tente novamente.")
     return False
     
 # Configurações do Google Drive
@@ -245,11 +249,24 @@ def main(service, refs):
                 st.warning("Por favor, preencha todos os campos.")
 
 if __name__ == "__main__":
-    # Verifica a senha antes de carregar o aplicativo
-    if verificar_senha():
-        # Autenticar e carregar o DataFrame do Google Drive
+    # Verifica se o usuário já está autenticado
+    if "usuario_autenticado" not in st.session_state:
+        st.session_state.usuario_autenticado = False
+
+    # Se o usuário não estiver autenticado, exibe os campos de usuário e senha
+    if not st.session_state.usuario_autenticado:
+        if verificar_usuario_senha():
+            # Autenticar e carregar o DataFrame do Google Drive
+            service = authenticate_google_drive()
+            refs = download_csv(service)
+
+            # Executar o aplicativo Streamlit
+            main(service, refs)
+    else:
+        # Se o usuário já estiver autenticado, exibe o aplicativo diretamente
         service = authenticate_google_drive()
         refs = download_csv(service)
+        main(service, refs)
 
         # Executar o aplicativo Streamlit
         main(service, refs)
