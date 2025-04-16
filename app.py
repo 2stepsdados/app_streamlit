@@ -412,7 +412,7 @@ def main(service, refs):
                         
                         # Incrementar o contador para criar um novo formulário com campos vazios
                         st.session_state.form_counter += 1
-                        st.experimental_rerun()
+                        st.rerun()
                     else:
                         st.warning("O campo 'Palavras-Chave' deve conter de 3 a 5 palavras.")
                 else:
