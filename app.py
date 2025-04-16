@@ -194,6 +194,11 @@ def main(service, refs):
             if st.button("Texto Resumo"):
                 st.session_state.coluna_busca = "DESCRICAO"
 
+        # Inicializar o estado de edição se não existir
+        if "editando_referencia" not in st.session_state:
+            st.session_state.editando_referencia = False
+            st.session_state.indice_edicao = None
+        
         # Verificando se uma coluna de busca foi selecionada
         if "coluna_busca" in st.session_state:
             coluna_busca = st.session_state.coluna_busca
@@ -205,75 +210,190 @@ def main(service, refs):
             if st.button("Buscar"):
                 if termo_busca.strip():  # Verifica se o termo de busca não está vazio
                     resultados = buscar_termo(refs, coluna_busca, termo_busca, case_sensitive=case_sensitive)
+                    
+                    # Armazenar os resultados no session_state para uso posterior
+                    st.session_state.resultados_busca = resultados
+                    
                     if not resultados.empty:
                         st.write(f"Resultados da busca por '{termo_busca}' no campo '{coluna_busca}':")
-                        for idx, row in resultados.iterrows():
-                            st.write(f"Resultado {idx + 1}")
+                        st.session_state.mostrando_resultados = True
+                    else:
+                        st.write("Nenhum resultado encontrado.")
+                        st.session_state.mostrando_resultados = False
+                else:
+                    st.warning("Por favor, insira um termo de busca.")
+            
+            # Se houver resultados armazenados, exibi-los
+            if "resultados_busca" in st.session_state and "mostrando_resultados" in st.session_state and st.session_state.mostrando_resultados:
+                # Se estiver no modo de edição, mostrar o formulário de edição
+                if st.session_state.editando_referencia and st.session_state.indice_edicao is not None:
+                    # Obter o índice real da referência no DataFrame original
+                    idx = st.session_state.indice_edicao
+                    referencia = refs.iloc[idx]
+                    
+                    st.subheader("Editar Referência")
+                    
+                    # Criar os campos de edição preenchidos com os valores atuais
+                    novo_titulo = st.text_input("Título:", value=referencia['TITULO'], key="edit_titulo")
+                    nova_campanha = st.text_input("Campanha:", value=referencia['CAMPANHA'], key="edit_campanha")
+                    nova_categoria = st.text_input("Categoria:", value=referencia['CATEGORIA'], key="edit_categoria")
+                    novo_local = st.text_input("Local:", value=referencia['LOCAL'], key="edit_local")
+                    novo_assunto = st.text_input("Assunto Principal:", value=referencia['ASSUNTO_PRINCIPAL'], key="edit_assunto")
+                    novo_caminho = st.text_input("Caminho (link):", value=referencia['CAMINHO'], key="edit_caminho")
+                    nova_descricao = st.text_area("Descrição:", value=referencia['DESCRICAO'], key="edit_descricao")
+                    novo_idioma = st.text_input("Idioma:", value=referencia['IDIOMA'], key="edit_idioma")
+                    novas_palavras = st.text_input("Palavras-Chave:", value=referencia['PALAVRAS_CHAVES'], key="edit_palavras")
+                    
+                    col1, col2 = st.columns(2)
+                    
+                    with col1:
+                        if st.button("Salvar Alterações"):
+                            # Verificar se todos os campos foram preenchidos
+                            if all([novo_titulo, nova_campanha, nova_categoria, novo_local, novo_assunto, novo_caminho, nova_descricao, novo_idioma, novas_palavras]):
+                                # Verificar se palavras-chave contém de 3 a 5 palavras
+                                if 3 <= len(novas_palavras.split()) <= 5:
+                                    # Atualizar os valores no DataFrame
+                                    refs.at[idx, 'TITULO'] = novo_titulo
+                                    refs.at[idx, 'CAMPANHA'] = nova_campanha
+                                    refs.at[idx, 'CATEGORIA'] = nova_categoria
+                                    refs.at[idx, 'LOCAL'] = novo_local
+                                    refs.at[idx, 'ASSUNTO_PRINCIPAL'] = novo_assunto
+                                    refs.at[idx, 'CAMINHO'] = novo_caminho
+                                    refs.at[idx, 'DESCRICAO'] = nova_descricao
+                                    refs.at[idx, 'IDIOMA'] = novo_idioma
+                                    refs.at[idx, 'PALAVRAS_CHAVES'] = novas_palavras
+                                    
+                                    # Salvar as alterações no CSV
+                                    upload_csv(service, refs)
+                                    
+                                    # Atualizar também os resultados da busca
+                                    st.session_state.resultados_busca = buscar_termo(refs, coluna_busca, termo_busca, case_sensitive=case_sensitive)
+                                    
+                                    st.success("Referência atualizada com sucesso!")
+                                    
+                                    # Sair do modo de edição
+                                    st.session_state.editando_referencia = False
+                                    st.session_state.indice_edicao = None
+                                    
+                                    # Recarregar a página para mostrar as alterações
+                                    st.rerun()
+                                else:
+                                    st.warning("O campo 'Palavras-Chave' deve conter de 3 a 5 palavras.")
+                            else:
+                                st.warning("Por favor, preencha todos os campos.")
+                    
+                    with col2:
+                        if st.button("Cancelar Edição"):
+                            st.session_state.editando_referencia = False
+                            st.session_state.indice_edicao = None
+                            st.rerun()
+                
+                # Caso contrário, mostrar os resultados normalmente
+                else:
+                    for i, (idx, row) in enumerate(st.session_state.resultados_busca.iterrows()):
+                        with st.container():
+                            st.write(f"Resultado {i + 1}")
                             st.write(f"**Assunto principal:** {row['ASSUNTO_PRINCIPAL']}")
                             st.write(f"**Título:** {row['TITULO']}")
                             st.write(f"**Campanha:** {row['CAMPANHA']}")
                             st.write(f"**Descrição:** {row['DESCRICAO']}")
                             st.write(f"**Palavras-Chave:** {row['PALAVRAS_CHAVES']}")
-                            st.link_button("**Link para referência**", url = row['CAMINHO'])
+                            st.link_button("**Link para referência**", url=row['CAMINHO'])
+                            
+                            # Botões de editar e excluir lado a lado
+                            col1, col2 = st.columns(2)
+                            with col1:
+                                # O botão de editar configura o modo de edição e armazena o índice
+                                if st.button(f"Editar", key=f"edit_{i}"):
+                                    st.session_state.editando_referencia = True
+                                    st.session_state.indice_edicao = idx  # Armazena o índice real no DataFrame
+                                    st.rerun()  # Recarrega a página para mostrar o formulário de edição
+                            
+                            with col2:
+                                # O botão de excluir mostra uma confirmação
+                                if st.button(f"Excluir", key=f"delete_{i}"):
+                                    # Configura o estado para mostrar a confirmação
+                                    st.session_state.confirmando_exclusao = True
+                                    st.session_state.indice_exclusao = idx
+                                    st.rerun()
+                            
                             st.write("---")
-                    else:
-                        st.write("Nenhum resultado encontrado.")
-                else:
-                    st.warning("Por favor, insira um termo de busca.")
+                    
+                    # Exibir a caixa de confirmação se estiver confirmando exclusão
+                    if "confirmando_exclusao" in st.session_state and st.session_state.confirmando_exclusao:
+                        st.warning("Tem certeza que deseja excluir esta referência? Esta ação não pode ser desfeita.")
+                        col1, col2 = st.columns(2)
+                        
+                        with col1:
+                            if st.button("Sim, excluir"):
+                                # Obter o índice da referência a excluir
+                                idx_excluir = st.session_state.indice_exclusao
+                                
+                                # Excluir a referência do DataFrame
+                                refs = refs.drop(idx_excluir).reset_index(drop=True)
+                                
+                                # Salvar o DataFrame atualizado
+                                upload_csv(service, refs)
+                                
+                                # Atualizar os resultados da busca
+                                st.session_state.resultados_busca = buscar_termo(refs, coluna_busca, termo_busca, case_sensitive=case_sensitive)
+                                
+                                # Se não houver mais resultados, atualizar o estado
+                                if st.session_state.resultados_busca.empty:
+                                    st.session_state.mostrando_resultados = False
+                                
+                                # Limpar o estado de confirmação
+                                st.session_state.confirmando_exclusao = False
+                                st.session_state.indice_exclusao = None
+                                
+                                st.success("Referência excluída com sucesso!")
+                                st.rerun()
+                        
+                        with col2:
+                            if st.button("Cancelar"):
+                                # Limpar o estado de confirmação
+                                st.session_state.confirmando_exclusao = False
+                                st.session_state.indice_exclusao = None
+                                st.rerun()
 
     with tab3:
         st.header("Registro de Referência")
         st.write("Aqui você pode registrar uma nova referência.")
         
-        # Inicializar as chaves no session_state se não existirem
-        if "titulo" not in st.session_state:
-            st.session_state.titulo = ""
-        if "campanha" not in st.session_state:
-            st.session_state.campanha = ""
-        if "categoria" not in st.session_state:
-            st.session_state.categoria = ""
-        if "local" not in st.session_state:
-            st.session_state.local = ""
-        if "assunto_principal" not in st.session_state:
-            st.session_state.assunto_principal = ""
-        if "caminho" not in st.session_state:
-            st.session_state.caminho = ""
-        if "resumo" not in st.session_state:
-            st.session_state.resumo = ""
-        if "idioma" not in st.session_state:
-            st.session_state.idioma = ""
-        if "palavras_chave" not in st.session_state:
-            st.session_state.palavras_chave = ""
+        # Inicializar `st.session_state` para cada campo controlado
+        for campo in ["titulo", "campanha", "categoria", "local", "assunto_principal", "caminho", "resumo", "idioma", "palavras_chave"]:
+            if campo not in st.session_state:
+                st.session_state[campo] = ""
+
+        # Coletando dados do usuário (vinculados ao `st.session_state`)
+        titulo = st.text_input("Informe o Título da referência:", value=st.session_state["titulo"], key="titulo")
+        campanha = st.text_input("Informe a Campanha da referência:", value=st.session_state["campanha"], key="campanha")
+        categoria = st.text_input("Informe a Categoria da referência:", value=st.session_state["categoria"], key="categoria")
+        local = st.text_input("Informe o Local da referência:", value=st.session_state["local"], key="local")
+        assunto_principal = st.text_input("Informe o Assunto Principal da referência:", value=st.session_state["assunto_principal"], key="assunto_principal")
+        caminho = st.text_input("Informe o Caminho (link completo) da referência:", value=st.session_state["caminho"], key="caminho")
+        resumo = st.text_input("Informe o Texto de Resumo da referência:", value=st.session_state["resumo"], key="resumo")
+        idioma = st.text_input("Informe o Idioma da referência:", value=st.session_state["idioma"], key="idioma")
+        palavras_chave = st.text_input("Informe as Palavras-Chave (de 3 a 5) da referência:", value=st.session_state["palavras_chave"], key="palavras_chave")
         
-        # Coletando dados do usuário usando o session_state para manter os valores
-        titulo = st.text_input("Informe o Título da referência: ", value=st.session_state.titulo, key="titulo_input")
-        campanha = st.text_input("Informe a Campanha da referência: ", value=st.session_state.campanha, key="campanha_input")
-        categoria = st.text_input("Informe a Categoria da referência: ", value=st.session_state.categoria, key="categoria_input")
-        local = st.text_input("Informe o Local da referência: ", value=st.session_state.local, key="local_input")
-        assunto_principal = st.text_input("Informe o Assunto Principal da referência: ", value=st.session_state.assunto_principal, key="assunto_principal_input")
-        caminho = st.text_input("Informe o Caminho (link completo) da referência: ", value=st.session_state.caminho, key="caminho_input")
-        resumo = st.text_input("Informe o Texto de Resumo da referência: ", value=st.session_state.resumo, key="resumo_input")
-        idioma = st.text_input("Informe o Idioma da referência: ", value=st.session_state.idioma, key="idioma_input")
-        palavras_chave = st.text_input("Informe as Palavras-Chave (de 3 a 5) da referência: ", value=st.session_state.palavras_chave, key="palavras_chave_input")
-        
-        # Função para limpar todos os campos do formulário
+        # Função para limpar os campos após o registro
         def limpar_campos():
-            st.session_state.titulo = ""
-            st.session_state.campanha = ""
-            st.session_state.categoria = ""
-            st.session_state.local = ""
-            st.session_state.assunto_principal = ""
-            st.session_state.caminho = ""
-            st.session_state.resumo = ""
-            st.session_state.idioma = ""
-            st.session_state.palavras_chave = ""
-        
+            st.session_state["titulo"] = ""
+            st.session_state["campanha"] = ""
+            st.session_state["categoria"] = ""
+            st.session_state["local"] = ""
+            st.session_state["assunto_principal"] = ""
+            st.session_state["caminho"] = ""
+            st.session_state["resumo"] = ""
+            st.session_state["idioma"] = ""
+            st.session_state["palavras_chave"] = ""
+
+        # Botão para registrar a referência
         if st.button("Registrar Referência"):
-            # Verifica se todos os campos foram preenchidos
+            # Verifica se os campos estão preenchidos
             if all([titulo, campanha, categoria, local, assunto_principal, caminho, resumo, idioma, palavras_chave]):
-                # Verifica se o campo "Palavras-Chave" contém de 3 a 5 palavras
-                if 3 <= len(palavras_chave.split()) <= 5:
-                    # Cria um novo registro
+                # Verificar se o campo "Palavras-Chave" contém entre 3 e 5 palavras
+                if 3 <= len(palavras_chave.split(",")) <= 5:
                     novo_registro = {
                         "TITULO": titulo,
                         "CAMPANHA": campanha,
@@ -283,23 +403,18 @@ def main(service, refs):
                         "CAMINHO": caminho,
                         "DESCRICAO": resumo,
                         "IDIOMA": idioma,
-                        "PALAVRAS_CHAVES": palavras_chave
+                        "PALAVRAS_CHAVES": palavras_chave.strip()
                     }
-                    
-                    # Adiciona o novo registro ao DataFrame
+                    # Adiciona a referência ao DataFrame
                     refs = pd.concat([refs, pd.DataFrame([novo_registro])], ignore_index=True)
-                    
-                    # Salva o DataFrame atualizado no arquivo CSV
-                    upload_csv(service, refs)
-                    
+                    upload_csv(service, refs)  # Salva no arquivo CSV
                     st.success("Referência registrada com sucesso!")
-                    st.write("Dados registrados:")
-                    st.write(novo_registro)
-                    
-                    # Limpa os campos após o registro bem-sucedido
+
+                    # Limpa os campos após o registro
                     limpar_campos()
+                    st.experimental_rerun()  # Recarrega os campos limpos
                 else:
-                    st.warning("O campo 'Palavras-Chave' deve conter de 3 a 5 palavras.")
+                    st.warning("O campo 'Palavras-Chave' deve conter entre 3 e 5 palavras separadas por vírgula.")
             else:
                 st.warning("Por favor, preencha todos os campos.")
 
