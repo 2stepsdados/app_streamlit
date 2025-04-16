@@ -356,64 +356,53 @@ def main(service, refs):
                                 st.session_state.indice_exclusao = None
                                 st.rerun()
 
-    with tab3:
-        st.header("Registro de Referência")
-        st.write("Aqui você pode registrar uma nova referência.")
-        
-        # Inicializar o flag de reset se não existir
-        if "resetar_campos" not in st.session_state:
-            st.session_state.resetar_campos = False
-        
-        # Se o flag de reset estiver ativo, limpe os valores
-        if st.session_state.resetar_campos:
-            # Desative o flag para evitar resets infinitos
-            st.session_state.resetar_campos = False
-            # Recarregue a página para limpar os campos
-            st.rerun()
-        
-        # Campos do formulário sem usar valores do session_state
-        titulo = st.text_input("Informe o Título da referência:", key="titulo")
-        campanha = st.text_input("Informe a Campanha da referência:", key="campanha")
-        categoria = st.text_input("Informe a Categoria da referência:", key="categoria")
-        local = st.text_input("Informe o Local da referência:", key="local")
-        assunto_principal = st.text_input("Informe o Assunto Principal da referência:", key="assunto_principal")
-        caminho = st.text_input("Informe o Caminho (link completo) da referência:", key="caminho")
-        resumo = st.text_input("Informe o Texto de Resumo da referência:", key="resumo")
-        idioma = st.text_input("Informe o Idioma da referência:", key="idioma")
-        palavras_chave = st.text_input("Informe as Palavras-Chave (de 3 a 5) da referência:", key="palavras_chave")
-        
-        # Botão para registrar a referência
-        if st.button("Registrar Referência"):
-            # Verificar se todos os campos estão preenchidos
-            if all([titulo, campanha, categoria, local, assunto_principal, caminho, resumo, idioma, palavras_chave]):
-                # Verificar se o campo "Palavras-Chave" contém entre 3 e 5 palavras separadas por vírgula
-                palavras = palavras_chave.strip().split(",")
-                if 3 <= len(palavras) <= 5:
-                    # Criar um novo registro
-                    novo_registro = {
-                        "TITULO": titulo,
-                        "CAMPANHA": campanha,
-                        "CATEGORIA": categoria,
-                        "LOCAL": local,
-                        "ASSUNTO_PRINCIPAL": assunto_principal,
-                        "CAMINHO": caminho,
-                        "DESCRICAO": resumo,
-                        "IDIOMA": idioma,
-                        "PALAVRAS_CHAVES": palavras_chave.strip()
-                    }
-                    # Adicionar no DataFrame e salvar no CSV
-                    refs = pd.concat([refs, pd.DataFrame([novo_registro])], ignore_index=True)
-                    upload_csv(service, refs)
-
-                    st.success("Referência registrada com sucesso!")
-                    
-                    # Ativar o flag para resetar os campos na próxima atualização
-                    st.session_state.resetar_campos = True
-                    st.rerun()
-                else:
-                    st.warning("O campo 'Palavras-Chave' deve conter entre 3 e 5 palavras separadas por vírgula.")
+with tab3:
+    st.header("Registro de Referência")
+    st.write("Aqui você pode registrar uma nova referência.")
+    
+    # Coletando dados do usuário
+    titulo = st.text_input("Informe o Título da referência: ")
+    campanha = st.text_input("Informe a Campanha da referência: ")
+    categoria = st.text_input("Informe a Categoria da referência: ")
+    local = st.text_input("Informe o Local da referência: ")
+    assunto_principal = st.text_input("Informe o Assunto Principal da referência: ")
+    caminho = st.text_input("Informe o Caminho (link completo) da referência: ")
+    resumo = st.text_input("Informe o Texto de Resumo da referência: ")
+    idioma = st.text_input("Informe o Idioma da referência: ")
+    palavras_chave = st.text_input("Informe as Palavras-Chave (de 3 a 5) da referência: ")
+    
+    if st.button("Registrar Referência"):
+        # Verifica se todos os campos foram preenchidos
+        if all([titulo, campanha, categoria, local, assunto_principal, caminho, resumo, idioma, palavras_chave]):
+            # Verifica se o campo "Palavras-Chave" contém de 3 a 5 palavras
+            if 3 <= len(palavras_chave.split()) <= 5:
+                # Cria um novo registro
+                novo_registro = {
+                    "TITULO": titulo,
+                    "CAMPANHA": campanha,
+                    "CATEGORIA": categoria,
+                    "LOCAL": local,
+                    "ASSUNTO_PRINCIPAL": assunto_principal,
+                    "CAMINHO": caminho,
+                    "DESCRICAO": resumo,
+                    "IDIOMA": idioma,
+                    "PALAVRAS_CHAVES": palavras_chave
+                }
+                
+                # Adiciona o novo registro ao DataFrame
+                refs = pd.concat([refs, pd.DataFrame([novo_registro])], ignore_index=True)
+                
+                # Salva o DataFrame atualizado no arquivo CSV
+                upload_csv(service, refs)
+                
+                st.success("Referência registrada com sucesso!")
+                st.write("Dados registrados:")
+                st.write(novo_registro)
             else:
-                st.warning("Por favor, preencha todos os campos.")
+                st.warning("O campo 'Palavras-Chave' deve conter de 3 a 5 palavras.")
+        else:
+            st.warning("Por favor, preencha todos os campos.")
+            
 
 if __name__ == "__main__":
     # Verifica se o usuário já está autenticado
