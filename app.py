@@ -356,53 +356,53 @@ def main(service, refs):
                                 st.session_state.indice_exclusao = None
                                 st.rerun()
 
-with tab3:
-    st.header("Registro de Referência")
-    st.write("Aqui você pode registrar uma nova referência.")
-    
-    # Coletando dados do usuário
-    titulo = st.text_input("Informe o Título da referência: ")
-    campanha = st.text_input("Informe a Campanha da referência: ")
-    categoria = st.text_input("Informe a Categoria da referência: ")
-    local = st.text_input("Informe o Local da referência: ")
-    assunto_principal = st.text_input("Informe o Assunto Principal da referência: ")
-    caminho = st.text_input("Informe o Caminho (link completo) da referência: ")
-    resumo = st.text_input("Informe o Texto de Resumo da referência: ")
-    idioma = st.text_input("Informe o Idioma da referência: ")
-    palavras_chave = st.text_input("Informe as Palavras-Chave (de 3 a 5) da referência: ")
-    
-    if st.button("Registrar Referência"):
-        # Verifica se todos os campos foram preenchidos
-        if all([titulo, campanha, categoria, local, assunto_principal, caminho, resumo, idioma, palavras_chave]):
-            # Verifica se o campo "Palavras-Chave" contém de 3 a 5 palavras
-            if 3 <= len(palavras_chave.split()) <= 5:
-                # Cria um novo registro
-                novo_registro = {
-                    "TITULO": titulo,
-                    "CAMPANHA": campanha,
-                    "CATEGORIA": categoria,
-                    "LOCAL": local,
-                    "ASSUNTO_PRINCIPAL": assunto_principal,
-                    "CAMINHO": caminho,
-                    "DESCRICAO": resumo,
-                    "IDIOMA": idioma,
-                    "PALAVRAS_CHAVES": palavras_chave
-                }
-                
-                # Adiciona o novo registro ao DataFrame
-                refs = pd.concat([refs, pd.DataFrame([novo_registro])], ignore_index=True)
-                
-                # Salva o DataFrame atualizado no arquivo CSV
-                upload_csv(service, refs)
-                
-                st.success("Referência registrada com sucesso!")
-                st.write("Dados registrados:")
-                st.write(novo_registro)
+    with tab3:
+        st.header("Registro de Referência")
+        st.write("Aqui você pode registrar uma nova referência.")
+        
+        # Coletando dados do usuário
+        titulo = st.text_input("Informe o Título da referência: ")
+        campanha = st.text_input("Informe a Campanha da referência: ")
+        categoria = st.text_input("Informe a Categoria da referência: ")
+        local = st.text_input("Informe o Local da referência: ")
+        assunto_principal = st.text_input("Informe o Assunto Principal da referência: ")
+        caminho = st.text_input("Informe o Caminho (link completo) da referência: ")
+        resumo = st.text_input("Informe o Texto de Resumo da referência: ")
+        idioma = st.text_input("Informe o Idioma da referência: ")
+        palavras_chave = st.text_input("Informe as Palavras-Chave (de 3 a 5) da referência: ")
+        
+        if st.button("Registrar Referência"):
+            # Verifica se todos os campos foram preenchidos
+            if all([titulo, campanha, categoria, local, assunto_principal, caminho, resumo, idioma, palavras_chave]):
+                # Verifica se o campo "Palavras-Chave" contém de 3 a 5 palavras
+                if 3 <= len(palavras_chave.split()) <= 5:
+                    # Cria um novo registro
+                    novo_registro = {
+                        "TITULO": titulo,
+                        "CAMPANHA": campanha,
+                        "CATEGORIA": categoria,
+                        "LOCAL": local,
+                        "ASSUNTO_PRINCIPAL": assunto_principal,
+                        "CAMINHO": caminho,
+                        "DESCRICAO": resumo,
+                        "IDIOMA": idioma,
+                        "PALAVRAS_CHAVES": palavras_chave
+                    }
+                    
+                    # Adiciona o novo registro ao DataFrame
+                    refs = pd.concat([refs, pd.DataFrame([novo_registro])], ignore_index=True)
+                    
+                    # Salva o DataFrame atualizado no arquivo CSV
+                    upload_csv(service, refs)
+                    
+                    st.success("Referência registrada com sucesso!")
+                    st.write("Dados registrados:")
+                    st.write(novo_registro)
+                else:
+                    st.warning("O campo 'Palavras-Chave' deve conter de 3 a 5 palavras.")
             else:
-                st.warning("O campo 'Palavras-Chave' deve conter de 3 a 5 palavras.")
-        else:
-            st.warning("Por favor, preencha todos os campos.")
-            
+                st.warning("Por favor, preencha todos os campos.")
+
 
 if __name__ == "__main__":
     # Verifica se o usuário já está autenticado
