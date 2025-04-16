@@ -225,16 +225,48 @@ def main(service, refs):
         st.header("Registro de Referência")
         st.write("Aqui você pode registrar uma nova referência.")
         
-        # Coletando dados do usuário
-        titulo = st.text_input("Informe o Título da referência: ")
-        campanha = st.text_input("Informe a Campanha da referência: ")
-        categoria = st.text_input("Informe a Categoria da referência: ")
-        local = st.text_input("Informe o Local da referência: ")
-        assunto_principal = st.text_input("Informe o Assunto Principal da referência: ")
-        caminho = st.text_input("Informe o Caminho (link completo) da referência: ")
-        resumo = st.text_input("Informe o Texto de Resumo da referência: ")
-        idioma = st.text_input("Informe o Idioma da referência: ")
-        palavras_chave = st.text_input("Informe as Palavras-Chave (de 3 a 5) da referência: ")
+        # Inicializar as chaves no session_state se não existirem
+        if "titulo" not in st.session_state:
+            st.session_state.titulo = ""
+        if "campanha" not in st.session_state:
+            st.session_state.campanha = ""
+        if "categoria" not in st.session_state:
+            st.session_state.categoria = ""
+        if "local" not in st.session_state:
+            st.session_state.local = ""
+        if "assunto_principal" not in st.session_state:
+            st.session_state.assunto_principal = ""
+        if "caminho" not in st.session_state:
+            st.session_state.caminho = ""
+        if "resumo" not in st.session_state:
+            st.session_state.resumo = ""
+        if "idioma" not in st.session_state:
+            st.session_state.idioma = ""
+        if "palavras_chave" not in st.session_state:
+            st.session_state.palavras_chave = ""
+        
+        # Coletando dados do usuário usando o session_state para manter os valores
+        titulo = st.text_input("Informe o Título da referência: ", value=st.session_state.titulo, key="titulo_input")
+        campanha = st.text_input("Informe a Campanha da referência: ", value=st.session_state.campanha, key="campanha_input")
+        categoria = st.text_input("Informe a Categoria da referência: ", value=st.session_state.categoria, key="categoria_input")
+        local = st.text_input("Informe o Local da referência: ", value=st.session_state.local, key="local_input")
+        assunto_principal = st.text_input("Informe o Assunto Principal da referência: ", value=st.session_state.assunto_principal, key="assunto_principal_input")
+        caminho = st.text_input("Informe o Caminho (link completo) da referência: ", value=st.session_state.caminho, key="caminho_input")
+        resumo = st.text_input("Informe o Texto de Resumo da referência: ", value=st.session_state.resumo, key="resumo_input")
+        idioma = st.text_input("Informe o Idioma da referência: ", value=st.session_state.idioma, key="idioma_input")
+        palavras_chave = st.text_input("Informe as Palavras-Chave (de 3 a 5) da referência: ", value=st.session_state.palavras_chave, key="palavras_chave_input")
+        
+        # Função para limpar todos os campos do formulário
+        def limpar_campos():
+            st.session_state.titulo = ""
+            st.session_state.campanha = ""
+            st.session_state.categoria = ""
+            st.session_state.local = ""
+            st.session_state.assunto_principal = ""
+            st.session_state.caminho = ""
+            st.session_state.resumo = ""
+            st.session_state.idioma = ""
+            st.session_state.palavras_chave = ""
         
         if st.button("Registrar Referência"):
             # Verifica se todos os campos foram preenchidos
@@ -263,6 +295,9 @@ def main(service, refs):
                     st.success("Referência registrada com sucesso!")
                     st.write("Dados registrados:")
                     st.write(novo_registro)
+                    
+                    # Limpa os campos após o registro bem-sucedido
+                    limpar_campos()
                 else:
                     st.warning("O campo 'Palavras-Chave' deve conter de 3 a 5 palavras.")
             else:
