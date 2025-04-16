@@ -154,7 +154,7 @@ def main(service, refs):
         <div style="background-color: #e6ffe6; padding: 15px; border-radius: 10px; border-left: 5px solid #00cc00;">
             <h3 style="color: #008000;">✨ NOVAS FUNCIONALIDADES</h3>
             <ul style="color: #008000;">
-                <li><b>Limpeza automática de campos:</b> Após registrar uma referência, os campos do formulário são limpos automaticamente para facilitar novos registros.</li>
+                <li><b>Limpeza automática de campos:</b> Após registrar uma referência, os campos do formulário são limpos automaticamente para facilitar novos registros, na aba "Registro de Referência".</li>
                 <li><b>Edição de referências:</b> Agora é possível editar referências existentes através do botão "Editar" nos resultados de busca, na aba "Busca de Referência".</li>
                 <li><b>Exclusão de referências:</b> Referências podem ser excluídas através do botão "Excluir" nos resultados de busca, na aba "Busca de Referência". <b>Importante:</b> Após clicar em "Excluir", desça a página para confirmar a exclusão.</li>
             </ul>
