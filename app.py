@@ -155,8 +155,8 @@ def main(service, refs):
             <h3 style="color: #008000;">✨ NOVAS FUNCIONALIDADES</h3>
             <ul style="color: #008000;">
                 <li><b>Limpeza automática de campos:</b> Após registrar uma referência, os campos do formulário são limpos automaticamente para facilitar novos registros.</li>
-                <li><b>Edição de referências:</b> Agora é possível editar referências existentes através do botão "Editar" nos resultados de busca.</li>
-                <li><b>Exclusão de referências:</b> Referências podem ser excluídas através do botão "Excluir" nos resultados de busca. <b>Importante:</b> Após clicar em "Excluir", desça a página para confirmar a exclusão.</li>
+                <li><b>Edição de referências:</b> Agora é possível editar referências existentes através do botão "Editar" nos resultados de busca, na aba "Busca de Referência".</li>
+                <li><b>Exclusão de referências:</b> Referências podem ser excluídas através do botão "Excluir" nos resultados de busca, na aba "Busca de Referência". <b>Importante:</b> Após clicar em "Excluir", desça a página para confirmar a exclusão.</li>
             </ul>
         </div>
         """, unsafe_allow_html=True)
@@ -382,15 +382,15 @@ def main(service, refs):
         
         with st.form(key=form_key):
             # Coletando dados do usuário
-            titulo = st.text_input("Informe o Título da referência: ")
-            campanha = st.text_input("Informe a Campanha da referência: ")
-            categoria = st.text_input("Informe a Categoria da referência: ")
-            local = st.text_input("Informe o Local da referência: ")
-            assunto_principal = st.text_input("Informe o Assunto Principal da referência: ")
-            caminho = st.text_input("Informe o Caminho (link completo) da referência: ")
-            resumo = st.text_input("Informe o Texto de Resumo da referência: ")
-            idioma = st.text_input("Informe o Idioma da referência: ")
-            palavras_chave = st.text_input("Informe as Palavras-Chave (de 3 a 5) da referência: ")
+            titulo = st.text_input("Informe o título da referência: ")
+            campanha = st.text_input("Informe a campanha da referência (Ex.: Netshoes, Claro, ...): ")
+            categoria = st.text_input("Informe a categoria da referência (Ex.: POST, REPORTAGEM, TEXTO, ...): ")
+            local = st.text_input("Informe o local da referência (Ex.: Instagram, www.qualquercoisa.com.br, ...): ")
+            assunto_principal = st.text_input("Informe o assunto principal da referência em uma palavra: ")
+            caminho = st.text_input("Informe o caminho (link completo) da referência: ")
+            resumo = st.text_input("Informe o texto de resumo da referência: ")
+            idioma = st.text_input("Informe o idioma da referência: ")
+            palavras_chave = st.text_input("Informe as palavras-chave (de 3 a 5 palavras separadas por vírgula) da referência: ")
             
             # Botão de submissão dentro do formulário
             submitted = st.form_submit_button("Registrar Referência")
