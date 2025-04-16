@@ -360,27 +360,27 @@ def main(service, refs):
         st.header("Registro de Referência")
         st.write("Aqui você pode registrar uma nova referência.")
         
-        # Inicializar `st.session_state` para cada campo de forma segura
+        # Inicializar os valores dos campos no `session_state` se ainda não existir
         for campo in ["titulo", "campanha", "categoria", "local", "assunto_principal", "caminho", "resumo", "idioma", "palavras_chave"]:
             if campo not in st.session_state:
                 st.session_state[campo] = ""
 
-        # Coletando os dados do usuário usando `st.session_state`
-        titulo = st.text_input("Informe o Título da referência:", key="titulo")
-        campanha = st.text_input("Informe a Campanha da referência:", key="campanha")
-        categoria = st.text_input("Informe a Categoria da referência:", key="categoria")
-        local = st.text_input("Informe o Local da referência:", key="local")
-        assunto_principal = st.text_input("Informe o Assunto Principal da referência:", key="assunto_principal")
-        caminho = st.text_input("Informe o Caminho (link completo) da referência:", key="caminho")
-        resumo = st.text_input("Informe o Texto de Resumo da referência:", key="resumo")
-        idioma = st.text_input("Informe o Idioma da referência:", key="idioma")
-        palavras_chave = st.text_input("Informe as Palavras-Chave (de 3 a 5) da referência:", key="palavras_chave")
+        # Criar os campos do formulário
+        titulo = st.text_input("Informe o Título da referência:", st.session_state["titulo"], key="titulo")
+        campanha = st.text_input("Informe a Campanha da referência:", st.session_state["campanha"], key="campanha")
+        categoria = st.text_input("Informe a Categoria da referência:", st.session_state["categoria"], key="categoria")
+        local = st.text_input("Informe o Local da referência:", st.session_state["local"], key="local")
+        assunto_principal = st.text_input("Informe o Assunto Principal da referência:", st.session_state["assunto_principal"], key="assunto_principal")
+        caminho = st.text_input("Informe o Caminho (link completo) da referência:", st.session_state["caminho"], key="caminho")
+        resumo = st.text_input("Informe o Texto de Resumo da referência:", st.session_state["resumo"], key="resumo")
+        idioma = st.text_input("Informe o Idioma da referência:", st.session_state["idioma"], key="idioma")
+        palavras_chave = st.text_input("Informe as Palavras-Chave (de 3 a 5) da referência:", st.session_state["palavras_chave"], key="palavras_chave")
         
         # Botão para registrar a referência
         if st.button("Registrar Referência"):
-            # Verificar se todos os campos foram preenchidos
+            # Verificar se todos os campos estão preenchidos
             if all([titulo, campanha, categoria, local, assunto_principal, caminho, resumo, idioma, palavras_chave]):
-                # Verificar se o campo "Palavras-Chave" contém entre 3 e 5 palavras separadas por vírgulas
+                # Verificar se o campo "Palavras-Chave" contém entre 3 e 5 palavras separadas por vírgula
                 if 3 <= len(palavras_chave.split(",")) <= 5:
                     # Criar um novo registro
                     novo_registro = {
@@ -394,31 +394,22 @@ def main(service, refs):
                         "IDIOMA": idioma,
                         "PALAVRAS_CHAVES": palavras_chave.strip()
                     }
-                    # Adicionar ao DataFrame
+                    # Adicionar no DataFrame e salvar no CSV
                     refs = pd.concat([refs, pd.DataFrame([novo_registro])], ignore_index=True)
-
-                    # Salvar os dados no arquivo CSV
                     upload_csv(service, refs)
 
                     st.success("Referência registrada com sucesso!")
                     
-                    # Limpar os campos após o registro
-                    st.session_state.update({
-                        "titulo": "",
-                        "campanha": "",
-                        "categoria": "",
-                        "local": "",
-                        "assunto_principal": "",
-                        "caminho": "",
-                        "resumo": "",
-                        "idioma": "",
-                        "palavras_chave": ""
-                    })
+                    # Limpeza utilizando `st.session_state` e recarregar a página
+                    for campo in ["titulo", "campanha", "categoria", "local", "assunto_principal", "caminho", "resumo", "idioma", "palavras_chave"]:
+                        st.session_state[campo] = ""  # Limpa o conteúdo de cada campo
+                        
+                    st.experimental_rerun()  # Recarrega a página para limpar os widgets
                 else:
                     st.warning("O campo 'Palavras-Chave' deve conter entre 3 e 5 palavras separadas por vírgula.")
             else:
                 st.warning("Por favor, preencha todos os campos.")
-                
+
 if __name__ == "__main__":
     # Verifica se o usuário já está autenticado
     if "usuario_autenticado" not in st.session_state:
